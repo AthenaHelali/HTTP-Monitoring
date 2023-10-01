@@ -3,6 +3,6 @@ version: "3.9"
 
 services:
   database:
-    image: mongo:5
+    image: mongo
     ports:
-      - 27017:27017
+      - "27017:27017"

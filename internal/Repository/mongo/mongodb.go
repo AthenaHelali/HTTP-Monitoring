@@ -1,9 +1,11 @@
-package store
+package mongo
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/AthenaHelali/HTTP-Monitoring/internal/Repository"
+	"time"
 
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,20 +26,23 @@ func NewUserMongoDB(db *mongo.Database, logger *zap.Logger) *UserMongodb {
 		logger:     logger,
 	}
 }
-func (store *UserMongodb) Save(ctx context.Context, m *model.User) error {
+func (store *UserMongodb) RegisterUser(m *model.User) (model.User, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	m.CreatedAt = time.Now()
 	if _, err := store.collection.InsertOne(ctx, m); err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return DuplicateUserError{
-				ID: m.ID,
+			return model.User{}, Repository.DuplicateUserError{
+				ID:      m.ID,
+				Message: "user already exist",
 			}
-			// return fmt.Errorf("user %s already exist. %v", m.ID, err)
 		}
-		return fmt.Errorf("document creation on mongodb faild %v", err)
+		return model.User{}, fmt.Errorf("document creation on mongodb faild %v", err)
 	}
-	return nil
+	return *m, nil
 
 }
-func (store *UserMongodb) Get(ctx context.Context, id string) (*model.User, error) {
+func (store *UserMongodb) GetUserByID(id string) (*model.User, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	var user *model.User
 
 	res := store.collection.FindOne(ctx, bson.M{
@@ -45,7 +50,7 @@ func (store *UserMongodb) Get(ctx context.Context, id string) (*model.User, erro
 	})
 	if err := res.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, UserNotFoundError{
+			return nil, Repository.UserNotFoundError{
 				ID: id,
 			}
 			// return user, fmt.Errorf("user %s doesn't exist. %v", id, err)
@@ -59,7 +64,8 @@ func (store *UserMongodb) Get(ctx context.Context, id string) (*model.User, erro
 	return user, nil
 
 }
-func (store *UserMongodb) GetAll(ctx context.Context) ([]model.User, error) {
+func (store *UserMongodb) GetAllUsers() ([]model.User, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	cursor, err := store.collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot read from collection %v", err)
@@ -85,5 +91,8 @@ func (store *UserMongodb) Replace(ctx context.Context, m *model.User) error {
 	if err != nil {
 		return fmt.Errorf("cannot delete user %s. %v", m.ID, err)
 	}
-	return store.Save(ctx, m)
+
+	_, err = store.RegisterUser(m)
+
+	return err
 }

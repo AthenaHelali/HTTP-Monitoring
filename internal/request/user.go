@@ -9,10 +9,10 @@ import (
 )
 
 type User struct {
-	ID         string    `bson:"id"`
-	Name       string    `bson:"name"`
-	Password   string    `bson:"password"`
-	Created_at time.Time `bson:"created_at"`
+	ID        string    `bson:"id"`
+	Name      string    `bson:"name"`
+	Password  string    `bson:"password"`
+	CreatedAt time.Time `bson:"created_at"`
 }
 
 var StudentIDRegex = regexp.MustCompile("[8-9][0-9][0-9]{2}[0-9]{3}")

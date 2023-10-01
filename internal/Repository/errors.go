@@ -1,11 +1,12 @@
-package store
+package Repository
 
 import (
 	"fmt"
 )
 
 type UserNotFoundError struct {
-	ID string
+	ID      string
+	Message string
 }
 
 func (err UserNotFoundError) Error() string {
@@ -13,7 +14,8 @@ func (err UserNotFoundError) Error() string {
 }
 
 type DuplicateUserError struct {
-	ID string
+	ID      string
+	Message string
 }
 
 func (err DuplicateUserError) Error() string {

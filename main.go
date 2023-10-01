@@ -1,13 +1,15 @@
 package main
 
 import (
+	"github.com/AthenaHelali/HTTP-Monitoring/internal/Repository/mongo"
+	"github.com/AthenaHelali/HTTP-Monitoring/internal/httpserver/userhandler"
+	"github.com/AthenaHelali/HTTP-Monitoring/internal/service/user"
 	"log"
 	"os"
 
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/config"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/db"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/handler"
-	"github.com/AthenaHelali/HTTP-Monitoring/internal/store"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
@@ -31,12 +33,16 @@ func main() {
 	if err != nil {
 		logger.Named("db").Fatal("cannot create a db instance", zap.Error(err))
 	}
-	userStore := store.NewUserMongoDB(
+	userStore := mongo.NewUserMongoDB(
 		db, logger.Named("user"),
 	)
+	userHandler := userhandler.Handler{
+		UserSvc: user.New(nil, userStore),
+	}
 	h := handler.App{
-		Store:  *userStore,
-		Logger: logger.Named("user"),
+		Store:       *userStore,
+		Logger:      logger.Named("user"),
+		UserHandler: userHandler,
 	}
 	h.Register(app)
 	h.Start()
