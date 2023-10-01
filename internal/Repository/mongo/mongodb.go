@@ -26,7 +26,7 @@ func NewUserMongoDB(db *mongo.Database, logger *zap.Logger) *UserMongodb {
 		logger:     logger,
 	}
 }
-func (store *UserMongodb) RegisterUser(m *model.User) (model.User, error) {
+func (store *UserMongodb) RegisterUser(m model.User) (model.User, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	m.CreatedAt = time.Now()
 	if _, err := store.collection.InsertOne(ctx, m); err != nil {
@@ -38,19 +38,19 @@ func (store *UserMongodb) RegisterUser(m *model.User) (model.User, error) {
 		}
 		return model.User{}, fmt.Errorf("document creation on mongodb faild %v", err)
 	}
-	return *m, nil
+	return m, nil
 
 }
-func (store *UserMongodb) GetUserByID(id string) (*model.User, error) {
+func (store *UserMongodb) GetUserByID(id string) (model.User, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	var user *model.User
+	var user model.User
 
 	res := store.collection.FindOne(ctx, bson.M{
 		"_id": id,
 	})
 	if err := res.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, Repository.UserNotFoundError{
+			return user, Repository.UserNotFoundError{
 				ID: id,
 			}
 			// return user, fmt.Errorf("user %s doesn't exist. %v", id, err)
@@ -84,14 +84,14 @@ func (store *UserMongodb) GetAllUsers() ([]model.User, error) {
 	return users, nil
 }
 
-func (store *UserMongodb) Replace(ctx context.Context, m *model.User) error {
+func (store *UserMongodb) ReplaceUser(m model.User) error {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	_, err := store.collection.DeleteOne(ctx, bson.M{
 		"_id": m.ID,
 	})
 	if err != nil {
 		return fmt.Errorf("cannot delete user %s. %v", m.ID, err)
 	}
-
 	_, err = store.RegisterUser(m)
 
 	return err

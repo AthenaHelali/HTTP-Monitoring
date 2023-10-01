@@ -3,8 +3,9 @@ package userhandler
 import (
 	"errors"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/Repository"
+	"github.com/AthenaHelali/HTTP-Monitoring/internal/auth"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/param"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -28,11 +29,9 @@ func (h Handler) userLogin(c echo.Context) error {
 	}
 
 	// Set custom claims
-	claims := &JWTCustomClaims{
-		user.ID,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-		},
+	claims := &auth.Claims{
+		UserID:           user.ID,
+		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72))},
 	}
 
 	// Create token with claims
@@ -47,9 +46,4 @@ func (h Handler) userLogin(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"token": t,
 	})
-}
-
-type JWTCustomClaims struct {
-	ID string `json:"name"`
-	jwt.StandardClaims
 }

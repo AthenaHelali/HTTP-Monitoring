@@ -9,7 +9,7 @@ type User struct {
 	Name      string    `bson:"name"`
 	Password  string    `bson:"password"`
 	CreatedAt time.Time `bson:"created_at"`
-	Alerts    []History `bson:"alert"`
+	Alerts    []Alert   `bson:"alert"`
 	History   []History `bson:"history"`
 	Urls      []URL     `bson:"urls"`
 }

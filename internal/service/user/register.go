@@ -13,12 +13,12 @@ func (s Service) Register(req param.RegisterRequest) (param.RegisterResponse, er
 	pass := []byte(req.Password)
 	hashedPass, err := bcrypt.GenerateFromPassword(pass, bcrypt.DefaultCost)
 
-	createdUser, err := s.repo.RegisterUser(&model.User{
+	createdUser, err := s.repo.RegisterUser(model.User{
 		ID:        req.ID,
 		Name:      req.Name,
 		Password:  string(hashedPass),
 		CreatedAt: time.Time{},
-		Alerts:    []model.History{},
+		Alerts:    []model.Alert{},
 		History:   []model.History{},
 		Urls:      []model.URL{},
 	})
