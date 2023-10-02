@@ -19,6 +19,10 @@ func (h Handler) userLogin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "cant bind request")
 	}
 
+	if err := h.UserValidator.ValidateLoginRequest(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
 	user, err := h.UserSvc.Login(req)
 	if err != nil {
 		var ErrNotFound Repository.UserNotFoundError
@@ -27,17 +31,13 @@ func (h Handler) userLogin(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
-
-	// Set custom claims
 	claims := &auth.Claims{
 		UserID:           user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72))},
 	}
 
-	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// Generate encoded token and send it as response.
 	t, err := token.SignedString([]byte("secret"))
 	if err != nil {
 		return err

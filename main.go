@@ -11,6 +11,7 @@ import (
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/service/monitor"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/service/url"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/service/user"
+	"github.com/AthenaHelali/HTTP-Monitoring/internal/validator/uservalidator"
 	"log"
 	"os"
 
@@ -42,7 +43,8 @@ func main() {
 		db, logger.Named("user"),
 	)
 	userHandler := userhandler.Handler{
-		UserSvc: user.New(userStore),
+		UserSvc:       user.New(userStore),
+		UserValidator: uservalidator.New(userStore),
 	}
 	urlHandler := urlhandler.Handler{
 		UrlSvc: url.New(userStore),

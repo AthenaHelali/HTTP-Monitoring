@@ -15,6 +15,10 @@ func (h Handler) userRegister(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "cant bind request")
 	}
 
+	if err := h.UserValidator.ValidateRegisterRequest(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
 	resp, err := h.UserSvc.Register(req)
 
 	if err != nil {

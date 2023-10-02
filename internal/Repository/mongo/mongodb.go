@@ -53,7 +53,6 @@ func (store *UserMongodb) GetUserByID(id string) (model.User, error) {
 			return user, Repository.UserNotFoundError{
 				ID: id,
 			}
-			// return user, fmt.Errorf("user %s doesn't exist. %v", id, err)
 		}
 		return user, fmt.Errorf("cannot read from collection %v", err)
 
@@ -95,4 +94,19 @@ func (store *UserMongodb) ReplaceUser(m model.User) error {
 	_, err = store.RegisterUser(m)
 
 	return err
+}
+
+func (store *UserMongodb) IsIdUnique(id string) (bool, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	res := store.collection.FindOne(ctx, bson.M{
+		"_id": id,
+	})
+	if err := res.Err(); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return true, nil
+		}
+		return false, err
+	}
+	return false, nil
 }

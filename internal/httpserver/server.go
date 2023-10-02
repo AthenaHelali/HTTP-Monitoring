@@ -7,6 +7,7 @@ import (
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/httpserver/userhandler"
 	"github.com/AthenaHelali/HTTP-Monitoring/internal/service/monitor"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +21,11 @@ type App struct {
 }
 
 func (a App) Serve(e *echo.Echo) {
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	e.GET("/health-check", a.healthCheck)
+
 	a.UserHandler.SetUserRoutes(e)
 	a.UrlHandler.SetUrlRoutes(e)
 	a.AlertHandler.SetUrlRoutes(e)
